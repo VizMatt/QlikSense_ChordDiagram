@@ -37,22 +37,21 @@ define(["jquery", "./ChordDiagram-Properties", "./Library/d3.min", "./Library/ch
 //			var qProperty_Dim1Cardinality 	= layout.qHyperCube.qDimensionInfo[0].qCardinal;
 //			var qProperty_Dim2Title 		= layout.qHyperCube.qDimensionInfo[1].qFallbackTitle;
 //			var qProperty_Dim2Cardinality 	= layout.qHyperCube.qDimensionInfo[1].qCardinal;
-             
+ 
+		  var self 		= this;            
           var data 		= getBiDimensionnalMatrix(layout);         
           var display 	= getDisplayArray($element);  
 		  var label 	= getLabelArray($element, layout);
           var color 	= getColorArray(layout, chroma.interpolate.bezier(layout.ColorSchema.split(", ")));
-		  var scale 	= getScaleArray(data, display[1], layout.UnitsSystem.split(", ")); 
-		
-		  var test		= (Math.floor((Math.ceil(Math.log(getSumArray(data) + 1) / Math.LN10)- 2) / 3) * 3);
+		  var scale 	= getScaleArray(data, display[1], layout.UnitsSystem.split(", "));
   
-          rendering(data, display, label, color, scale, $element, layout);
+          rendering(self, data, display, label, color, scale, $element, layout);
 		}
 	};
 });
 
 //--------------------------------------------------------------------------------------------------------- D3.JS & Chroma.JS Library ---------------------------
-function rendering(matrix, display, label, fill, scale, $element, layout) {  
+function rendering(self, matrix, display, label, fill, scale, $element, layout) {  
 
 	var id = "container_"+ layout.qInfo.qId;
   
@@ -74,7 +73,8 @@ function rendering(matrix, display, label, fill, scale, $element, layout) {
 	var height = $element.height();
     var innerRadius = Math.min(width, height) * display[0];
     var outerRadius = innerRadius + 16;
-  
+	var selections = layout.qHyperCube.qDimensionInfo[0].qStateCounts.qSelected;
+	
   	var svg = chart_div.append("svg")
 		.attr("width",width)
 		.attr("height",height)
@@ -97,8 +97,9 @@ function rendering(matrix, display, label, fill, scale, $element, layout) {
 	  .style("text-align", "left")
 	  .style("border-radius", "6px")
 	  .style("opacity", ".8");
-
-    svg.append("g").selectAll("path")
+	var opacity = 0.3;
+	
+    var chordGroup = svg.append("g").selectAll("path")
         .data(chord.groups)
       .enter().append("path")
         .style("fill", function(d) { return fill[d.index]; })
@@ -108,20 +109,33 @@ function rendering(matrix, display, label, fill, scale, $element, layout) {
 		.on("mouseover", 
 			function(d,i){
 				svg.selectAll(".chord path").filter(
-					function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", 0.1);
+					function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", opacity);
 				tooltip.style("visibility", "visible")
-					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
+					.html("<b>"+ label[i][0] +'</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
         .on("mousemove",
 			function(d,i){
 				tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px")
-					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
+					.html("<b>"+ label[i][0] +'</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
         .on("mouseout",
 			function(d,i){
 				svg.selectAll(".chord path").filter(
-					function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", 0.5);
+					function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", .5);
 				tooltip.style("visibility", "hidden")
-					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");});
-
+					.html("<b>"+ label[i][0] +'</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");});
+		
+	chordGroup.on("click",
+		function(d,i) {
+			opacity = 0.1;	
+			if(layout.SelectionMode == "MONO"){
+				self.selectValues(0, [label[i][4]], true);
+			}else{
+				self.selectValues(0, [label[i][4]], true);
+				self.backendApi.selectValues(1, [label[i][4]], true);
+			}
+			svg.selectAll(".chord path").filter(function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", opacity);
+		}
+	);					
+					
     svg.append("g")
         .attr("class", "chord")
       .selectAll("path")
@@ -131,7 +145,7 @@ function rendering(matrix, display, label, fill, scale, $element, layout) {
         .style("fill", function(d) { return fill[d.target.index]; })
         .style("stroke", function(d) { return d3.rgb(fill[d.target.index]).darker(); })
   		.style("opacity", .5);
-
+		
     svg.append("g").selectAll("text")
         .data(chord.groups)
       .enter().append("svg:text")
@@ -145,7 +159,7 @@ function rendering(matrix, display, label, fill, scale, $element, layout) {
        	.style("font-size", "13px")
     	.style("font-family", "sans-serif")
      	.style("fill", function(d, i) { return d3.rgb(fill[i]).darker().darker().darker(); });
-
+				
     var ticks = svg.append("g").selectAll("g")
         .data(chord.groups)
       .enter().append("g").selectAll("g")
@@ -183,7 +197,7 @@ function rendering(matrix, display, label, fill, scale, $element, layout) {
 }
 
 //--------------------------------------------------------------------------------------------------------- Custom Data function --------------------------------
-// Returns a variable representing the max value in the array / matrix
+// Returns a variable representing the sum of all values in the array / matrix
 function getSumArray(inputMatrix) {
   var outputVariable = d3.sum(inputMatrix, function(array) {
     return d3.sum(array, Number);
@@ -217,7 +231,7 @@ function getUniqueDimension(inputLayout) {
     var i = 2 * k;
     var j = i + 1;
 		inputArray[i] = inputMatrix[k][0].qText;
-		inputArray[j] = inputMatrix[k][1].qText; 
+		inputArray[j] = inputMatrix[k][1].qText;
   }                  
   for (var i = 0; i < inputArray.length; i++){
 	if ((jQuery.inArray(inputArray[i], outputArray)) == -1){
@@ -320,12 +334,14 @@ function getLabelArray($element, layout) {
   var data = getBiDimensionnalMatrix(layout);         
   var dim = getUniqueDimension(layout);
   var circonf = Math.PI*(Math.min($element.width(), $element.height()) * 0.4 * display); 
+  var qMatrix = layout.qHyperCube.qDataPages[0].qMatrix;
   var i, j = data.length, limit, result = [], wrap = " ", words = " ";  
   
   for (i = 0; i < j; i++) {
     limit = Math.floor(((d3.sum(data[i]) / (getSumArray(data))*circonf)*.18));
+    selection = qMatrix[i][1].qElemNumber;
     if(limit > 1 && Math.min($element.width(), $element.height()) > 200) {var words = dim[i].substring(0, limit)} else {var words = ""} ;
-     result[i] = [dim[i], d3.sum(data[i]), words, limit];
+     result[i] = [dim[i], d3.sum(data[i]), words, limit, selection];
   }   
   return result;
 }

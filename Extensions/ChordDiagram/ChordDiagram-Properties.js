@@ -27,6 +27,21 @@ define( [], function () {
 			settings: {
 				uses: "settings",
 				items:{
+				selection:{
+					  ref: "SelectionMode",
+					  type: "string",
+					  component: "dropdown",
+					  label: "Selection Mode",
+					  options: 
+						[ {
+							value: "MONO",
+							label: "1st Dimension Only"
+						}, {
+							value: "DUAL",
+							label: "Both Dimensions"
+						}],
+					  defaultValue: "MONO"
+				  },
 				units:{
 					  ref: "UnitsSystem",
 					  type: "string",
