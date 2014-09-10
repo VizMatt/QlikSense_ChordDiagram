@@ -1,15 +1,24 @@
 QlikSense_ChordDiagram
 ======================
 
-Qlik Sense extension displaying the inter-relationships between data.
+Qlik Sense extension displaying the inter-relationships between data : http://en.wikipedia.org/wiki/chord_diagram
+
+The extension is based on : 
+- D3.js, using Mike Bostock's Chord Diagram : http://goo.gl/Kymhud 
+- Chroma.js, using Gregor Aisch's color palette generator : http://goo.gl/A6RPWo
 
 ![Visualization](https://github.com/VizMatt/QlikSense_ChordDiagram/blob/master/Screenshots/QlikSense%20Extension%20-%20ChordDiagram%20Demo.png)
 
-This viz requires 2 dimensions (From & To) and a metric.
 
-The extension is based on :
-D3.js, using Mike Bostock's Chord Diagram : http://goo.gl/Kymhud
-Chroma.js, using Gregor Aisch's color palette generator : http://goo.gl/A6RPWo
+*********************************
+How to read it
+*********************************
+1. A chord represents a dependency between data (ex: from "Europe" to "North America").
+
+2. The chord base width is proportional to the value of the indicator based on the first dimension (ex : Departure from "Europe" = 41,290).
+
+3. The chord color represents the balance of power between data, it take the color of the weakest (ex: Chord "Europe - Africa" use the color of "Africa").
+
 
 *********************************
 Installation & Use
