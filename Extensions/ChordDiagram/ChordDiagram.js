@@ -111,18 +111,18 @@ function rendering(self, matrix, display, label, fill, scale, $element, layout) 
 				svg.selectAll(".chord path").filter(
 					function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", opacity);
 				tooltip.style("visibility", "visible")
-					.html("<b>"+ label[i][0] +'</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
+					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
         .on("mousemove",
 			function(d,i){
 				tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px")
-					.html("<b>"+ label[i][0] +'</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
+					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
         .on("mouseout",
 			function(d,i){
 				svg.selectAll(".chord path").filter(
 					function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", .5);
 				tooltip.style("visibility", "hidden")
-					.html("<b>"+ label[i][0] +'</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");});
-		
+					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");});
+/*		
 	chordGroup.on("click",
 		function(d,i) {
 			opacity = 0.1;	
@@ -135,7 +135,7 @@ function rendering(self, matrix, display, label, fill, scale, $element, layout) 
 			svg.selectAll(".chord path").filter(function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", opacity);
 		}
 	);					
-					
+*/					
     svg.append("g")
         .attr("class", "chord")
       .selectAll("path")
@@ -339,9 +339,9 @@ function getLabelArray($element, layout) {
   
   for (i = 0; i < j; i++) {
     limit = Math.floor(((d3.sum(data[i]) / (getSumArray(data))*circonf)*.18));
-    selection = qMatrix[i][1].qElemNumber;
+ //   selection = qMatrix[i][1].qElemNumber;
     if(limit > 1 && Math.min($element.width(), $element.height()) > 200) {var words = dim[i].substring(0, limit)} else {var words = ""} ;
-     result[i] = [dim[i], d3.sum(data[i]), words, limit, selection];
+     result[i] = [dim[i], d3.sum(data[i]), words, limit, 0];
   }   
   return result;
 }
