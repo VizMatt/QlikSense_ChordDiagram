@@ -1,6 +1,6 @@
 /**
 ***  Qlik Sense Extension - Chord Diagram v1.00
-***															
+***                             
 ***  Developped : by Matthieu BUREL
 ***
 ***  Follow me on Tweeter : @VizMatt
@@ -9,133 +9,118 @@
 define(["jquery", "./ChordDiagram-Properties", "./Library/d3.min", "./Library/chroma.min"], function($, properties, d3, chroma) {
   return {
        initialProperties : {
-			version: 1.0,
-			qHyperCubeDef : {
-				qDimensions : [],
-				qMeasures : [],
-				qInitialDataFetch : [{
-					qWidth : 3,
-					qHeight : 500
-				}]
-			}
-		},
+      version: 1.0,
+      qHyperCubeDef : {
+        qDimensions : [],
+        qMeasures : [],
+        qInitialDataFetch : [{
+          qWidth : 3,
+          qHeight : 500
+        }]
+      }
+    },
         
-		definition : properties,
+    definition : properties,
  
-		snapshot : {
-			canTakeSnapshot : true
-		},
+    snapshot : {
+      canTakeSnapshot : true
+    },
 
 //------------------------------------------------------------------------------ Rendering
         paint : function($element, layout) {        
-//			var qData 						= layout.qHyperCube.qDataPages[0];
-//			var qMatrix 					= qData.qMatrix;
-//			var qNomb_Row 					= layout.qHyperCube.qSize.qcx;
-//			var qNomb_Col 					= layout.qHyperCube.qSize.qcy;
-//			var qProperty_xxxx				= layout.ref;
-//			var qProperty_Dim1Title 		= layout.qHyperCube.qDimensionInfo[0].qFallbackTitle; 
-//			var qProperty_Dim1Cardinality 	= layout.qHyperCube.qDimensionInfo[0].qCardinal;
-//			var qProperty_Dim2Title 		= layout.qHyperCube.qDimensionInfo[1].qFallbackTitle;
-//			var qProperty_Dim2Cardinality 	= layout.qHyperCube.qDimensionInfo[1].qCardinal;
+//      var qData             = layout.qHyperCube.qDataPages[0];
+//      var qMatrix           = qData.qMatrix;
+//      var qNomb_Row           = layout.qHyperCube.qSize.qcx;
+//      var qNomb_Col           = layout.qHyperCube.qSize.qcy;
+//      var qProperty_xxxx        = layout.ref;
+//      var qProperty_Dim1Title     = layout.qHyperCube.qDimensionInfo[0].qFallbackTitle; 
+//      var qProperty_Dim1Cardinality   = layout.qHyperCube.qDimensionInfo[0].qCardinal;
+//      var qProperty_Dim2Title     = layout.qHyperCube.qDimensionInfo[1].qFallbackTitle;
+//      var qProperty_Dim2Cardinality   = layout.qHyperCube.qDimensionInfo[1].qCardinal;
  
-		  var self 		= this;            
-          var data 		= getBiDimensionnalMatrix(layout);         
-          var display 	= getDisplayArray($element);  
-		  var label 	= getLabelArray($element, layout);
-          var color 	= getColorArray(layout, chroma.interpolate.bezier(layout.ColorSchema.split(", ")));
-		  var scale 	= getScaleArray(data, display[1], layout.UnitsSystem.split(", "));
+      var self    = this;            
+          var data    = getBiDimensionnalMatrix(layout);         
+          var display   = getDisplayArray($element);  
+      var label   = getLabelArray($element, layout);
+          var color   = getColorArray(layout, chroma.interpolate.bezier(layout.ColorSchema.split(", ")));
+      var scale   = getScaleArray(data, display[1], layout.UnitsSystem.split(", "));
   
           rendering(self, data, display, label, color, scale, $element, layout);
-		}
-	};
+    }
+  };
 });
 
 //--------------------------------------------------------------------------------------------------------- D3.JS & Chroma.JS Library ---------------------------
 function rendering(self, matrix, display, label, fill, scale, $element, layout) {  
 
-	var id = "container_"+ layout.qInfo.qId;
+  var id = "container_"+ layout.qInfo.qId;
   
-	if (document.getElementById(id)) {
-	 	$("#" + id).empty();
-	}
-	else {
-	 	$element.append($('<div />').attr("id", id).width($element.width()).height($element.height()));
-	}
+  if (document.getElementById(id)) {
+    $("#" + id).empty();
+  }
+  else {
+    $element.append($('<div />').attr("id", id).width($element.width()).height($element.height()));
+  }
 
-  	var chart_div = d3.select("#" + id);
+    var chart_div = d3.select("#" + id);
   
-	var chord = d3.layout.chord()
+  var chord = d3.layout.chord()
         .padding(.05)
         .sortSubgroups(d3.descending)
         .matrix(matrix);
 
-	var width = $element.width();
-	var height = $element.height();
+  var width = $element.width();
+  var height = $element.height();
     var innerRadius = Math.min(width, height) * display[0];
     var outerRadius = innerRadius + 16;
-	var selections = layout.qHyperCube.qDimensionInfo[0].qStateCounts.qSelected;
-	
-  	var svg = chart_div.append("svg")
-		.attr("width",width)
-		.attr("height",height)
+  var selections = layout.qHyperCube.qDimensionInfo[0].qStateCounts.qSelected;
+  
+    var svg = chart_div.append("svg")
+    .attr("width",width)
+    .attr("height",height)
       .append("g")
         .attr("transform", "translate(" + (width) / 2 + "," + (height) / 2 + ")");
 
-	var numFormat = d3.format(',')
+  var numFormat = d3.format(',')
 
-	var tooltip = d3.select("body")
+  if(document.getElementById("tooltip_" + id)) {
+    $("#tooltip_" + id).empty();
+    var tooltip = d3.select("#tooltip_" + id);
+  }
+  else {
+    var tooltip = d3.select("body")
       .append("div")
-	  .style("position", "absolute")
-	  .style("padding-top", "8px")
-	  .style("padding-bottom", "8px")
-	  .style("padding-left", "18px")
-	  .style("padding-right", "18px")
-	  .style("width", "160px")
-	  .style("color", "#FFFFFF")
-	  .style("background", "#000000")
-	  .style("line-height", "25px")
-	  .style("text-align", "left")
-	  .style("border-radius", "6px")
-	  .style("opacity", ".8");
-	var opacity = 0.3;
-	
+      .attr("class","tooltip")
+      .attr("id","tooltip_" +id);
+  }
+
+  tooltip
+    .style("position", "absolute")
+    .style("padding-top", "8px")
+    .style("padding-bottom", "8px")
+    .style("padding-left", "18px")
+    .style("padding-right", "18px")
+    .style("width", "160px")
+    .style("color", "#FFFFFF")
+    .style("background", "#000000")
+    .style("line-height", "25px")
+    .style("text-align", "left")
+    .style("border-radius", "6px")
+    .style("opacity", ".8");
+  var opacity = 0.3;
+  
     var chordGroup = svg.append("g").selectAll("path")
         .data(chord.groups)
       .enter().append("path")
         .style("fill", function(d) { return fill[d.index]; })
         .style("stroke", function(d) { return d3.rgb(fill[d.index]).darker(); })
-   		.attr("id", function(d, i){return "group-" + i;})
-        .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
-		.on("mouseover", 
-			function(d,i){
-				svg.selectAll(".chord path").filter(
-					function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", opacity);
-				tooltip.style("visibility", "visible")
-					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
-        .on("mousemove",
-			function(d,i){
-				tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px")
-					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");})
-        .on("mouseout",
-			function(d,i){
-				svg.selectAll(".chord path").filter(
-					function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", .5);
-				tooltip.style("visibility", "hidden")
-					.html("<b>"+ label[i][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[i][1]) + "</span>");});
-/*		
-	chordGroup.on("click",
-		function(d,i) {
-			opacity = 0.1;	
-			if(layout.SelectionMode == "MONO"){
-				self.selectValues(0, [label[i][4]], true);
-			}else{
-				self.selectValues(0, [label[i][4]], true);
-				self.backendApi.selectValues(1, [label[i][4]], true);
-			}
-			svg.selectAll(".chord path").filter(function(d) { return d.target.index != i && d.source.index != i; }).transition().style("opacity", opacity);
-		}
-	);					
-*/					
+      .attr("class","chord_path")
+      .attr("id", function(d, i){return "group-" + i;})
+        .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius));
+    
+    
+          
+        
     svg.append("g")
         .attr("class", "chord")
       .selectAll("path")
@@ -144,22 +129,77 @@ function rendering(self, matrix, display, label, fill, scale, $element, layout) 
         .attr("d", d3.svg.chord().radius(innerRadius))
         .style("fill", function(d) { return fill[d.target.index]; })
         .style("stroke", function(d) { return d3.rgb(fill[d.target.index]).darker(); })
-  		.style("opacity", .5);
-		
+      .style("opacity", .5);
+    
     svg.append("g").selectAll("text")
         .data(chord.groups)
       .enter().append("svg:text")
+         .attr("class","text_label")
          .attr("x", ".60em")
          .attr("dy", "13px")
       .append("svg:textPath")
-    	.attr("xlink:href", function(d, i){return "#group-" + i;})
+      .attr("xlink:href", function(d, i){return "#group-" + i;})
         .text(function(d,i) {
-			return label[i][2];})
-    	.style("font-weight", "bold")
-       	.style("font-size", "13px")
-    	.style("font-family", "sans-serif")
-     	.style("fill", function(d, i) { return d3.rgb(fill[i]).darker().darker().darker(); });
-				
+      return label[i][2];})
+      .style("font-weight", "bold")
+        .style("font-size", "13px")
+      .style("font-family", "sans-serif")
+      .style("fill", function(d, i) { return d3.rgb(fill[i]).darker().darker().darker(); });
+
+    var user_click_area = d3.selectAll('.text_label,.chord_path');
+    var clicked_nodes = [];
+   user_click_area
+     .on("click",
+        function(d,i) {
+          var cur_i = d.index;
+          if(clicked_nodes.indexOf(cur_i)>-1) {
+            clicked_nodes.splice(clicked_nodes.indexOf(cur_i));
+          }
+          else {
+            clicked_nodes.push(cur_i);
+          }
+          user_click_area.on("mouseover",null);
+          user_click_area.on("mouseout",function(d,i) {
+            tooltip.style("visibility", "hidden")
+              .html("<b>"+ label[d.index][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[d.index][1]) + "</span>");
+            });
+          opacity = 0.1;  
+          if(layout.SelectionMode == "MONO"){
+            self.selectValues(0, [label[d.index][4]], true);
+          }else{
+            self.selectValues(0, [label[d.index][4]], true);
+            self.backendApi.selectValues(1, [label[d.index][4]], true);
+          }
+          if(layout.SelectionMode == "MONO"){
+            
+            svg.selectAll(".chord path").transition().style("opacity", opacity);
+            svg.selectAll(".chord path").filter(function(d) { return clicked_nodes.indexOf(d.source.index)>-1 ; }).transition().style("opacity", 1);
+          }
+          else {
+            svg.selectAll(".chord path").transition().style("opacity", opacity);
+            svg.selectAll(".chord path").filter(function(d) { return clicked_nodes.indexOf(d.target.index)>-1  && clicked_nodes.indexOf(d.source.index)>-1 ; }).transition().style("opacity", 1);
+          }
+        }
+      )
+     .on("mouseover", 
+      function(d,i){
+        var cur_i = d.index;
+        svg.selectAll(".chord path").filter(
+          function(d) { return d.target.index != cur_i && d.source.index != cur_i; }).transition().style("opacity", opacity);
+        tooltip.style("visibility", "visible")
+          .html("<b>"+ label[d.index][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[d.index][1]) + "</span>");})
+        .on("mousemove",
+      function(d,i){
+        tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px")
+          .html("<b>"+ label[d.index][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[d.index][1]) + "</span>");})
+        .on("mouseout",
+      function(d,i){
+        var cur_i = d.index;
+        svg.selectAll(".chord path").filter(
+          function(d) { return d.target.index != cur_i && d.source.index != cur_i; }).transition().style("opacity", .5);
+        tooltip.style("visibility", "hidden")
+          .html("<b>"+ label[d.index][0] + '</b><br/>Total:  <span style="text-align: right;">' + numFormat(label[d.index][1]) + "</span>");});
+        
     var ticks = svg.append("g").selectAll("g")
         .data(chord.groups)
       .enter().append("g").selectAll("g")
@@ -183,17 +223,17 @@ function rendering(self, matrix, display, label, fill, scale, $element, layout) 
         .attr("transform", function(d) { return d.angle > Math.PI ? "rotate(180)translate(-16)" : null; })
         .style("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; })
         .text(function(d) { return d.label ; })
-    	.style("font-size",display[2]);
+      .style("font-size",display[2]);
 
-	function groupTicks(d) {             
-		var k = (d.endAngle - d.startAngle) / d.value;
-		return d3.range(0, d.value, scale[1]*scale[0]).map(function(v, i) {
-		  return {
-			angle: v * k + d.startAngle,
-			label: i % 1 ? null : Math.round(v / scale[0]) + scale[2]
-		  };
-		});
-	}
+  function groupTicks(d) {             
+    var k = (d.endAngle - d.startAngle) / d.value;
+    return d3.range(0, d.value, scale[1]*scale[0]).map(function(v, i) {
+      return {
+      angle: v * k + d.startAngle,
+      label: i % 1 ? null : Math.round(v / scale[0]) + scale[2]
+      };
+    });
+  }
 }
 
 //--------------------------------------------------------------------------------------------------------- Custom Data function --------------------------------
@@ -230,12 +270,12 @@ function getUniqueDimension(inputLayout) {
   for (k = 0; k < inputMatrixSize; k++) {
     var i = 2 * k;
     var j = i + 1;
-		inputArray[i] = inputMatrix[k][0].qText;
-		inputArray[j] = inputMatrix[k][1].qText;
+    inputArray[i] = inputMatrix[k][0].qText;
+    inputArray[j] = inputMatrix[k][1].qText;
   }                  
   for (var i = 0; i < inputArray.length; i++){
-	if ((jQuery.inArray(inputArray[i], outputArray)) == -1){
-		outputArray.push(inputArray[i]);}
+  if ((jQuery.inArray(inputArray[i], outputArray)) == -1){
+    outputArray.push(inputArray[i]);}
   }
   return outputArray;
 }
@@ -246,7 +286,7 @@ function getBiDimensionnalTable(inputLayout) {
   var inputMatrixSize = inputLayout.qHyperCube.qSize.qcy;
   var outputArray = [];
   for (i = 0; i < inputMatrixSize; i++) {
-    outputArray[i] 	= new Array(inputMatrixSize);
+    outputArray[i]  = new Array(inputMatrixSize);
     outputArray[i][0] = inputMatrix[i][0].qText;
     outputArray[i][1] = inputMatrix[i][1].qText;
     outputArray[i][2] = inputMatrix[i][2].qNum;
@@ -299,16 +339,16 @@ function getScaleArray(data, scale_Number, units) {
     if(delta < 0 && j == 0){ outputArray[1] = scale_Template[i]; j = 1;}
   }
   switch(Math.floor((Math.ceil(Math.log(getSumArray(data) + 1) / Math.LN10)- 2) / 3)) {
-    case 0:	outputArray[2] = ""; break;
-    case 1:	outputArray[2] = units[0]; break; 
-    case 2:	outputArray[2] = units[1]; break; 
-    case 3:	outputArray[2] = units[2]; break; 
-    case 4:	outputArray[2] = units[3]; break; 
-    case 5:	outputArray[2] = units[4]; break; 
-    case 6:	outputArray[2] = units[5]; break; 
-    case 7:	outputArray[2] = units[6]; break; 
-    case 8:	outputArray[2] = units[7]; break; 
-    case 9:	outputArray[2] = units[8]; break; 
+    case 0: outputArray[2] = ""; break;
+    case 1: outputArray[2] = units[0]; break; 
+    case 2: outputArray[2] = units[1]; break; 
+    case 3: outputArray[2] = units[2]; break; 
+    case 4: outputArray[2] = units[3]; break; 
+    case 5: outputArray[2] = units[4]; break; 
+    case 6: outputArray[2] = units[5]; break; 
+    case 7: outputArray[2] = units[6]; break; 
+    case 8: outputArray[2] = units[7]; break; 
+    case 9: outputArray[2] = units[8]; break; 
     default: outputArray[2] = ""; break;
   }
   outputArray[3] = segment_Division;
@@ -339,9 +379,9 @@ function getLabelArray($element, layout) {
   
   for (i = 0; i < j; i++) {
     limit = Math.floor(((d3.sum(data[i]) / (getSumArray(data))*circonf)*.18));
- //   selection = qMatrix[i][1].qElemNumber;
+    selection = qMatrix[i][1].qElemNumber;
     if(limit > 1 && Math.min($element.width(), $element.height()) > 200) {var words = dim[i].substring(0, limit)} else {var words = ""} ;
-     result[i] = [dim[i], d3.sum(data[i]), words, limit, 0];
+     result[i] = [dim[i], d3.sum(data[i]), words, limit, selection];
   }   
   return result;
 }
