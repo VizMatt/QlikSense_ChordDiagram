@@ -3,6 +3,8 @@
 ***															
 ***  Developped : by Matthieu BUREL
 ***
+***  Version : 1.02
+***
 ***  Follow me on Tweeter : @VizMatt
 **/
 
@@ -263,13 +265,15 @@ function getUniqueDimension(inputLayout) {
 	var inputMatrixSize = inputLayout.qHyperCube.qSize.qcy;
 	var inputArray = []; 
 	var outputArray = []; 
-	
+
 	for (k = 0; k < inputMatrixSize; k++) {
-		var i = 2 * k;
-		var j = i + 1;
-		inputArray[i] = inputMatrix[k][0].qText;
-		inputArray[j] = inputMatrix[k][1].qText;
-	}   
+		if(inputMatrix[k] != null && inputMatrix[k].length > 0) {
+			var i = 2 * k;
+			var j = i + 1;
+			inputArray[i] = inputMatrix[k][0].qText;
+			inputArray[j] = inputMatrix[k][1].qText;
+		}
+	}
 	
 	for (var i = 0; i < inputArray.length; i++){
 		if ((jQuery.inArray(inputArray[i], outputArray)) == -1){
@@ -286,18 +290,20 @@ function getDimensionProperty(inputLayout) {
 	var inputMatrixSize = inputLayout.qHyperCube.qSize.qcy;
 	var inputProperty = [], intermediateProperty = [], outputArray = [];
 	var inputProperty_Dim1a = [], inputProperty_Dim1b = [], inputProperty_Dim1c = [], inputProperty_Dim2a = [], inputProperty_Dim2b = [], inputProperty_Dim2c = [];
-	
+
 	for (k = 0; k < inputMatrixSize; k++) {
-		var i = 2 * k;
-		var j = i + 1;
-		inputProperty[i] = inputMatrix[k][0].qText;
-		inputProperty[j] = inputMatrix[k][1].qText;
-		inputProperty_Dim1a[k] = inputMatrix[k][0].qText;
-		inputProperty_Dim1b[k] = 1;
-		inputProperty_Dim1c[k] = inputMatrix[k][0].qElemNumber;
-		inputProperty_Dim2a[k] = inputMatrix[k][1].qText;
-		inputProperty_Dim2b[k] = 2;
-		inputProperty_Dim2c[k] = inputMatrix[k][1].qElemNumber;
+		if(inputMatrix[k] != null && inputMatrix[k].length > 0) {
+			var i = 2 * k;
+			var j = i + 1;
+			inputProperty[i] = inputMatrix[k][0].qText;
+			inputProperty[j] = inputMatrix[k][1].qText;
+			inputProperty_Dim1a[k] = inputMatrix[k][0].qText;
+			inputProperty_Dim1b[k] = 1;
+			inputProperty_Dim1c[k] = inputMatrix[k][0].qElemNumber;
+			inputProperty_Dim2a[k] = inputMatrix[k][1].qText;
+			inputProperty_Dim2b[k] = 2;
+			inputProperty_Dim2c[k] = inputMatrix[k][1].qElemNumber;
+		}
 	}
 	
 	for (i = 0; i < inputProperty.length; i++){
@@ -365,11 +371,13 @@ function getBiDimensionnalMatrix(inputLayout) {
 			outputMatrix[i][j] = 0;
 		}
 	}  
-    
-	for (i = 0; i < inputVariable_DimensionsCardinality; i++) {
-		var x = inputTable_DistinctDimension.indexOf(inputMatrix[i][0].qText);
-		var y = inputTable_DistinctDimension.indexOf(inputMatrix[i][1].qText);
-		outputMatrix[x][y] = inputMatrix[i][2].qNum;       
+
+	if(inputMatrix[i] != null && inputMatrix[i].length > 0) {	
+		for (i = 0; i < inputVariable_DimensionsCardinality; i++) {
+			var x = inputTable_DistinctDimension.indexOf(inputMatrix[i][0].qText);
+			var y = inputTable_DistinctDimension.indexOf(inputMatrix[i][1].qText);
+			outputMatrix[x][y] = inputMatrix[i][2].qNum;       
+		}
 	}
 	
 	return outputMatrix;
