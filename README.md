@@ -12,7 +12,7 @@ The extension is based on :
 
 *********************************
 How to read it
-*********************************
+======================
 1. A chord represents a dependency between data (ex: from "Europe" to "North America").
 
 2. The chord base width is proportional to the value of the indicator based on the first dimension (ex : Departure from "Europe" = 41,290).
@@ -23,7 +23,7 @@ How to read it
 *********************************
 Installation & Use
 *********************************
->A Sense App is available in the package ("\Apps") : drag & drop qvf in the Sense Hub to open it
+A Sense App is available in the package ("\Apps") : drag & drop qvf in the Sense Hub to open it
 
 ![Visualization](https://github.com/VizMatt/QlikSense_ChordDiagram/blob/master/Screenshots/QlikSense%20Extension%20-%20ChordDiagram%20Demo.gif)
 
