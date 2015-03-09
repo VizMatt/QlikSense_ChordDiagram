@@ -22,7 +22,7 @@ How to read it
 
 *********************************
 Installation & Use
-*********************************
+======================
 A Sense App is available in the package ("\Apps") : drag & drop qvf in the Sense Hub to open it
 
 ![Visualization](https://github.com/VizMatt/QlikSense_ChordDiagram/blob/master/Screenshots/QlikSense%20Extension%20-%20ChordDiagram%20Demo.gif)
